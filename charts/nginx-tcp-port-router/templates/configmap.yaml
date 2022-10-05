@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes  1;
+    pid        /var/run/nginx.pid;
+    events {
+      worker_connections  10240;
+    }
+    stream {
+      {{ range .Values.servicePorts }}
+      server {
+        listen {{ . }};
+        proxy_pass iperf-{{ . }}:{{ $.Values.targetPort}};
+      }
+      {{ end }}
+    }

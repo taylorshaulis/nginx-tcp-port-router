@@ -1,0 +1,43 @@
+{{ range .Values.servicePorts }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf-{{ . }}
+  labels:
+    iperf: iperf-{{ . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      iperf: iperf-{{ . }}
+  template:
+    metadata:
+      labels:
+        iperf: iperf-{{ . }}
+    spec:
+      containers:
+        - name: iperf
+          image: networkstatic/iperf3
+          args: ["-s"]
+          ports:
+            - name: iperf
+              containerPort: {{ $.Values.targetPort }}
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iperf-{{ . }}
+  labels:
+    iperf: iperf-{{ . }}
+spec:
+  type: ClusterIP
+  ports:
+    - port:  {{ $.Values.targetPort }}
+      targetPort:  {{ $.Values.targetPort }}
+      protocol: TCP
+      name: iperf-{{ . }}
+  selector:
+    iperf: iperf-{{ . }}
+{{ end }}
